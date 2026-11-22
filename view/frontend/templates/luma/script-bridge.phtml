@@ -1,0 +1,43 @@
+<?php declare(strict_types=1);
+
+/**
+ * GoogleTagManager2 plugin for Magento - GIZTOP theme bridge
+ *
+ * Initializes the athlete2 bridge through text/x-magento-init (RequireJS), so no inline
+ * script is introduced that would bypass CSP. The configuration comes from the
+ * "giztop_bridge" group of the module configuration, with defaults compatible with Luma.
+ *
+ * @author      GIZTOP
+ * @copyright   Copyright (c) 2026
+ * @license     Open Software License
+ */
+
+use Magento\Framework\View\Element\Template;
+use Yireo\GoogleTagManager2\Config\Config;
+
+/** @var Config $config */
+/** @var Template $block */
+$config = $block->getConfig();
+
+if (false === $config->isEnabled() || false === $config->isBridgeEnabled()) {
+    return;
+}
+
+$bridgeConfig = [
+    'product_selector' => $config->getBridgeProductSelector(),
+    'item_selector' => $config->getBridgeItemSelector(),
+    'grid_selector' => $config->getBridgeGridSelector(),
+    'column_selector' => $config->getBridgeColumnSelector(),
+    'quickview_event' => $config->getBridgeQuickviewEvent(),
+    'debounce' => $config->getBridgeDebounce(),
+    'debug' => $config->isBridgeDebug() || $config->isDebug(),
+];
+
+$bridgeJson = json_encode(
+    $bridgeConfig,
+    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES
+);
+?>
+<script type="text/x-magento-init">
+    {"*":{"yireoGoogleTagManagerBridge":<?= /* @noEscape */ $bridgeJson ?>}}
+</script>

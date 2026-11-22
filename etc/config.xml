@@ -40,6 +40,17 @@
                 <max_attempts>5</max_attempts>
                 <retention_days>30</retention_days>
             </serverside_tracking>
+            <giztop_bridge>
+                <enabled>1</enabled>
+                <product_selector>input[name="product"]</product_selector>
+                <grid_selector>.column.main .products.products-grid, .column.main .products.products-list, .column.main .products-grid.grid</grid_selector>
+                <item_selector>.column.main .item.product.product-item</item_selector>
+                <column_selector>.column.main</column_selector>
+                <quickview_event>ajax:addToCart</quickview_event>
+                <debounce>150</debounce>
+                <dedupe_mode>event</dedupe_mode>
+                <debug>0</debug>
+            </giztop_bridge>
         </googletagmanager2>
     </default>
 </config>

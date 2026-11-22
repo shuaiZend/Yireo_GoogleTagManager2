@@ -101,6 +101,22 @@
                 </arguments>
             </block>
 
+            <!--
+                GIZTOP adaptation: bridge that re-emits view_item_list after AJAX list updates
+                (Olegnax InfiniteScroll / LayeredNavigation) and emits add_to_cart for Quickview
+                iframe submissions. All selectors and the event name are configurable via the
+                "giztop_bridge" configuration group (defaults compatible with Luma).
+            -->
+            <block
+                name="yireo_googletagmanager2.script-bridge"
+                template="Yireo_GoogleTagManager2::luma/script-bridge.phtml"
+                after="yireo_googletagmanager2.script-additions"
+                ifconfig="googletagmanager2/settings/enabled">
+                <arguments>
+                    <argument name="config" xsi:type="object">Yireo\GoogleTagManager2\Config\Config</argument>
+                </arguments>
+            </block>
+
             <block
                     name="yireo_googletagmanager2.script-consent"
                     template="Yireo_GoogleTagManager2::luma/script-consent.phtml"

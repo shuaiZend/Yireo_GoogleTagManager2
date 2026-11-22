@@ -386,4 +386,105 @@ class Config implements ArgumentInterface
             'consent'
         );
     }
+
+    /**
+     * Check whether the GIZTOP athlete2 bridge (infinite scroll, quickview, layered navigation)
+     * is enabled. It defaults to "on" and is written as plain selectors, so it is compatible
+     * with the Luma theme as well.
+     *
+     * @return bool
+     */
+    public function isBridgeEnabled(): bool
+    {
+        return (bool)$this->getModuleConfigValue('enabled', true, 'giztop_bridge');
+    }
+
+    /**
+     * @return string
+     */
+    public function getBridgeProductSelector(): string
+    {
+        return (string)$this->getModuleConfigValue(
+            'product_selector',
+            'input[name="product"]',
+            'giztop_bridge'
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getBridgeGridSelector(): string
+    {
+        return (string)$this->getModuleConfigValue(
+            'grid_selector',
+            '.column.main .products.products-grid, .column.main .products.products-list,'
+            . ' .column.main .products-grid.grid',
+            'giztop_bridge'
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getBridgeItemSelector(): string
+    {
+        return (string)$this->getModuleConfigValue(
+            'item_selector',
+            '.column.main .item.product.product-item',
+            'giztop_bridge'
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getBridgeColumnSelector(): string
+    {
+        return (string)$this->getModuleConfigValue(
+            'column_selector',
+            '.column.main',
+            'giztop_bridge'
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public function getBridgeQuickviewEvent(): string
+    {
+        return (string)$this->getModuleConfigValue(
+            'quickview_event',
+            'ajax:addToCart',
+            'giztop_bridge'
+        );
+    }
+
+    /**
+     * @return int
+     */
+    public function getBridgeDebounce(): int
+    {
+        return (int)$this->getModuleConfigValue('debounce', 150, 'giztop_bridge');
+    }
+
+    /**
+     * Global dedupe mode for the JavaScript pusher: "all" (legacy identical-JSON dedupe for every
+     * event), "event" (default: transactional events like add_to_cart are never deduped) or
+     * "none" (no identical-JSON dedupe at all).
+     *
+     * @return string
+     */
+    public function getBridgeDedupeMode(): string
+    {
+        return (string)$this->getModuleConfigValue('dedupe_mode', 'event', 'giztop_bridge');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBridgeDebug(): bool
+    {
+        return (bool)$this->getModuleConfigValue('debug', false, 'giztop_bridge');
+    }
 }

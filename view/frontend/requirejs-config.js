@@ -12,7 +12,8 @@ var config = {
             'yireoGoogleTagManager': 'Yireo_GoogleTagManager2/js/generic',
             'yireoGoogleTagManagerPush': 'Yireo_GoogleTagManager2/js/push',
             'yireoGoogleTagManagerProductClicks': 'Yireo_GoogleTagManager2/js/product/clicks',
-            'yireoGoogleTagManagerLogger': 'Yireo_GoogleTagManager2/js/logger'
+            'yireoGoogleTagManagerLogger': 'Yireo_GoogleTagManager2/js/logger',
+            'yireoGoogleTagManagerBridge': 'Yireo_GoogleTagManager2/js/athlete2-bridge'
         }
     },
     config: {

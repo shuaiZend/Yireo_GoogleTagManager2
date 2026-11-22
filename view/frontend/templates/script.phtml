@@ -27,6 +27,10 @@ $events = ($config->waitForUserInteraction() === false)
 ?>
 <script>
     window.YIREO_GOOGLETAGMANAGER2_ENABLED = true;
+    // Global dedupe mode for the pusher ("all"|"event"|"none", default "event"). See
+    // js/push.js: transactional events (add_to_cart, remove_from_cart, purchase, refund) are
+    // exempt from identical-JSON dedupe in the default mode.
+    window.YIREO_GOOGLETAGMANAGER2_DEDUPE_MODE = '<?= $escaper->escapeJs($config->getBridgeDedupeMode()) ?>';
     (function (events, nonce) {
         const initYireoGoogleTagManager2 = function (event) {
             // Browsers fire a mousemove without any movement when content renders underneath a stationary cursor

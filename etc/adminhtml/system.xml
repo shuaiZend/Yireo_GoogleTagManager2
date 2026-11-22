@@ -306,6 +306,68 @@
                     </depends>
                 </field>
             </group>
+            <group id="giztop_bridge" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>GIZTOP Theme Bridge (infinite scroll, quickview, layered navigation)</label>
+                <comment><![CDATA[DOM bridge that re-emits <code>view_item_list</code> after AJAX list updates (Olegnax InfiniteScroll, Olegnax LayeredNavigation) and emits <code>add_to_cart</code> for Quickview submissions. All selectors default to the Luma theme markup and can be overridden per theme (for instance Olegnax Athlete2).]]></comment>
+                <field id="enabled" type="select" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="product_selector" type="text" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product ID selector</label>
+                    <comment><![CDATA[Selector used inside a product item to resolve the product entity ID (fallback when the item has no <code>data-entity-id</code> attribute).]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="grid_selector" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product grid selector</label>
+                    <comment>Comma-separated list of selectors matching the product grid/list containers that receive AJAX-appended items (infinite scroll).</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="item_selector" type="text" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product item selector</label>
+                    <comment>Selector matching a single product item (tile) within the grid.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="column_selector" type="text" translate="label" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Main column selector</label>
+                    <comment>Selector of the container whose content is replaced by AJAX layered navigation. Observed with a MutationObserver.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="quickview_event" type="text" translate="label" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Quickview add-to-cart event</label>
+                    <comment><![CDATA[Name of the jQuery event triggered on the parent document when the Quickview iframe submits its product form (Olegnax Quickview: <code>ajax:addToCart</code>).]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="debounce" type="text" translate="label" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mutation debounce (ms)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="dedupe_mode" type="select" translate="label" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>dataLayer dedupe mode</label>
+                    <source_model>Yireo\GoogleTagManager2\Config\Source\BridgeDedupeMode</source_model>
+                    <comment><![CDATA["Event" (default) dedupes identical-JSON payloads except transactional events (add_to_cart, remove_from_cart, purchase, refund); "All" dedupes every event (legacy); "None" disables dedupe. Per-event override via <code>meta.dedupe</code>.]]></comment>
+                </field>
+                <field id="debug" type="select" translate="label" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Bridge debug logging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
         </section>
     </system>
 </config>
