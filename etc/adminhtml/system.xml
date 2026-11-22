@@ -348,6 +348,14 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
+                <field id="quickview_add_to_cart" type="select" translate="label" sortOrder="65" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Emit Quickview add_to_cart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Disabled by default: the server-side <code>checkout_cart_add_product_complete</code> observer already emits the authoritative add_to_cart for Quickview submissions. Enable only if the server-side event is suppressed.]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
                 <field id="debounce" type="text" translate="label" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mutation debounce (ms)</label>
                     <validate>validate-digits validate-greater-than-zero</validate>

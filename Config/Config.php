@@ -389,14 +389,14 @@ class Config implements ArgumentInterface
 
     /**
      * Check whether the GIZTOP athlete2 bridge (infinite scroll, quickview, layered navigation)
-     * is enabled. It defaults to "on" and is written as plain selectors, so it is compatible
-     * with the Luma theme as well.
+     * is enabled. It defaults to "off" so that a fresh installation does not start emitting
+     * bridge events before the theme selectors have been verified on the target store.
      *
      * @return bool
      */
     public function isBridgeEnabled(): bool
     {
-        return (bool)$this->getModuleConfigValue('enabled', true, 'giztop_bridge');
+        return (bool)$this->getModuleConfigValue('enabled', false, 'giztop_bridge');
     }
 
     /**
@@ -458,6 +458,18 @@ class Config implements ArgumentInterface
             'ajax:addToCart',
             'giztop_bridge'
         );
+    }
+
+    /**
+     * Whether the bridge should emit add_to_cart for Quickview iframe submissions. Disabled by
+     * default because the server-side checkout_cart_add_product_complete observer already emits
+     * the authoritative event; enabling both produces a duplicate add_to_cart in the parent page.
+     *
+     * @return bool
+     */
+    public function isBridgeQuickviewAddToCartEnabled(): bool
+    {
+        return (bool)$this->getModuleConfigValue('quickview_add_to_cart', false, 'giztop_bridge');
     }
 
     /**

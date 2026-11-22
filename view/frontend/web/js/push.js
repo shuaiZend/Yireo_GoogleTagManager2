@@ -30,13 +30,26 @@ define(['yireoGoogleTagManagerLogger'], function (logger) {
         // twice is two genuine events, not a duplicate.
         const eventName = cleanEventData.event || '';
         if (shouldDedupe(metaData, eventName)) {
-            const eventHash = btoa(encodeURIComponent(JSON.stringify(cleanEventData)));
-            if (window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.includes(eventHash)) {
+            let eventHash = null;
+            try {
+                eventHash = btoa(encodeURIComponent(JSON.stringify(cleanEventData)));
+            } catch (e) {
+                // A lone surrogate (for example in an emoji product name) makes btoa throw.
+                // Dedupe is an optimisation, not a reason to drop the event.
+                logger('Warning: could not hash event for dedupe, pushing anyway', e);
+            }
+
+            if (eventHash && window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.includes(eventHash)) {
                 logger('Warning: Event already triggered', eventData);
                 return;
             }
 
-            window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.push(eventHash);
+            if (eventHash) {
+                window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.push(eventHash);
+                if (window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.length > 500) {
+                    window.YIREO_GOOGLETAGMANAGER2_PAST_EVENTS.shift();
+                }
+            }
         }
 
         if (!message) {

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+    GIZTOP: the Olegnax Quickview iframe renders the full catalog_product_view handle.
+    Loading the Yireo GTM blocks inside the iframe would create a second GA4 session
+    (page_view/view_item) on top of the parent page. The parent page still receives the
+    authoritative add_to_cart through the server-side checkout_cart_add_product_complete
+    observer, so all Yireo frontend blocks are removed from the Quickview iframe.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="yireo_googletagmanager2.script-consent-default" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.script" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.iframe" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.data-layer" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.script-additions" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.script-product-clicks" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.script-bridge" remove="true"/>
+        <referenceBlock name="yireo_googletagmanager2.script-consent" remove="true"/>
+    </body>
+</page>

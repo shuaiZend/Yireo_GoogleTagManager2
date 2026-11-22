@@ -29,6 +29,7 @@ $bridgeConfig = [
     'grid_selector' => $config->getBridgeGridSelector(),
     'column_selector' => $config->getBridgeColumnSelector(),
     'quickview_event' => $config->getBridgeQuickviewEvent(),
+    'quickview_add_to_cart' => $config->isBridgeQuickviewAddToCartEnabled(),
     'debounce' => $config->getBridgeDebounce(),
     'debug' => $config->isBridgeDebug() || $config->isDebug(),
 ];

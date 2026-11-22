@@ -17,6 +17,15 @@ use PHPUnit\Framework\TestCase;
  */
 class ProductListItemDataAttributesTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        $this->markTestSkipped(
+            'The catalog_list_item layout was removed in the GIZTOP fork: Athlete2/Luma do not '
+            . 'provide the product_list_item block, and the list data layer is built from the '
+            . 'ListProduct collection instead.'
+        );
+    }
+
     public function testEntityIdIsMergedWithAttributesOfALaterBlockDeclaration()
     {
         $layout = $this->createLayout();

@@ -24,10 +24,10 @@ define([
     // genuine update from the server always delivers a freshly parsed object.
     var processedSectionSnapshots = new WeakSet();
 
-    // Registry of window events that this module already bound handlers for, keyed by
-    // "allowedEventKey" (see processGtmEvent below). Prevents listener accumulation when a
-    // section that carries allowed_events metadata is refreshed multiple times.
-    var boundWindowEvents = {};
+    // Guard against re-entrant notifications while a section is being processed. The WeakSet
+    // tracks successfully processed snapshots; a snapshot is only marked after processing so a
+    // thrown error can be retried on the next customerData update.
+    var processingSections = {};
 
     var isDisabled = function () {
         if (isValidConfig() === false) {
@@ -61,28 +61,31 @@ define([
         return customer() && customer().firstname;
     };
 
-    var isSectionSnapshotProcessed = function (sectionName) {
+    var processSection = function (sectionName) {
         var sectionData = customerData.get(sectionName)();
         if (typeof sectionData !== 'object' || sectionData === null) {
-            return false;
+            return;
         }
 
         if (processedSectionSnapshots.has(sectionData)) {
             logger('Skipping section "' + sectionName + '", its data snapshot was already processed');
-            return true;
-        }
-
-        processedSectionSnapshots.add(sectionData);
-        return false;
-    };
-
-    var processSection = function (sectionName) {
-        if (isSectionSnapshotProcessed(sectionName)) {
             return;
         }
 
-        processGtmDataFromSection(sectionName);
-        processGtmEventsFromSection(sectionName);
+        if (processingSections[sectionName]) {
+            return;
+        }
+
+        processingSections[sectionName] = true;
+        try {
+            processGtmDataFromSection(sectionName);
+            processGtmEventsFromSection(sectionName);
+            processedSectionSnapshots.add(sectionData);
+        } catch (e) {
+            logger('Warning: failed to process customerData section "' + sectionName + '"', e);
+        } finally {
+            delete processingSections[sectionName];
+        }
     };
 
     var processGtmDataFromSection = function (sectionName) {
@@ -113,17 +116,12 @@ define([
         const metaData = Object.assign({}, eventData.meta);
         if (metaData && metaData.allowed_events) {
             for (const [allowedEventKey, allowedEvent] of Object.entries(metaData.allowed_events)) {
-                // Guard against listener accumulation: every refresh of this section re-delivers
-                // the same allowed_events metadata, so only bind once per event key. The handler
-                // is also namespaced, so a later off() can never remove foreign listeners.
-                if (boundWindowEvents[allowedEventKey] === allowedEvent) {
-                    continue;
-                }
-
+                // Always rebind with the latest eventData: view_cart is re-delivered on every cart
+                // change, and keeping the first closure would report a stale cart snapshot. The
+                // namespaced off() prevents listener accumulation.
                 $(window).off(allowedEvent + '.yireoGtm2').on(allowedEvent + '.yireoGtm2', function () {
                     pusher(eventData, 'push (allowed event "' + allowedEventKey + '") [generic.js]');
                 });
-                boundWindowEvents[allowedEventKey] = allowedEvent;
             }
 
             return;
