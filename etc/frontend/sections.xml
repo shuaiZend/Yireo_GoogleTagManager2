@@ -10,4 +10,29 @@
     <action name="wishlist/index/add">
         <section name="customer"/>
     </action>
+
+    <!--
+        GIZTOP adaptation: the remove_from_cart / add_to_cart data-layer events travel through
+        the "cart" customer-data section (see Observer\TriggerRemoveFromCartDataLayerEvent and
+        Observer\TriggerAddToCartDataLayerEvent, which feed the session data provider that
+        Plugin\AddDataToCartSection appends to the cart section). Magento_Checkout already
+        declares these mappings, but they are re-declared here explicitly so that theme or
+        third-party overrides cannot silently break minicart remove/qty/delete tracking.
+
+        The Olegnax Quickview iframe submits the standard product form to checkout/cart/add,
+        so covering that action also covers Quickview submissions. The parent-window side of
+        Quickview add-to-cart is handled by the athlete2 bridge (js/athlete2-bridge.js).
+    -->
+    <action name="checkout/sidebar/removeItem">
+        <section name="cart"/>
+    </action>
+    <action name="checkout/sidebar/updateItemQty">
+        <section name="cart"/>
+    </action>
+    <action name="checkout/cart/delete">
+        <section name="cart"/>
+    </action>
+    <action name="checkout/cart/add">
+        <section name="cart"/>
+    </action>
 </config>
