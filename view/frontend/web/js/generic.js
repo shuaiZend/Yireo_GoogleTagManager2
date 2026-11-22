@@ -18,6 +18,17 @@ define([
 
     var moduleConfig = {};
 
+    // Snapshot references of section data objects that were already processed. A WeakSet is used
+    // so that the same delivery object is processed exactly once: re-entrant notifications caused
+    // by our own customerData.set() below deliver the very same object reference again, while a
+    // genuine update from the server always delivers a freshly parsed object.
+    var processedSectionSnapshots = new WeakSet();
+
+    // Registry of window events that this module already bound handlers for, keyed by
+    // "allowedEventKey" (see processGtmEvent below). Prevents listener accumulation when a
+    // section that carries allowed_events metadata is refreshed multiple times.
+    var boundWindowEvents = {};
+
     var isDisabled = function () {
         if (isValidConfig() === false) {
             return true;
@@ -50,6 +61,30 @@ define([
         return customer() && customer().firstname;
     };
 
+    var isSectionSnapshotProcessed = function (sectionName) {
+        var sectionData = customerData.get(sectionName)();
+        if (typeof sectionData !== 'object' || sectionData === null) {
+            return false;
+        }
+
+        if (processedSectionSnapshots.has(sectionData)) {
+            logger('Skipping section "' + sectionName + '", its data snapshot was already processed');
+            return true;
+        }
+
+        processedSectionSnapshots.add(sectionData);
+        return false;
+    };
+
+    var processSection = function (sectionName) {
+        if (isSectionSnapshotProcessed(sectionName)) {
+            return;
+        }
+
+        processGtmDataFromSection(sectionName);
+        processGtmEventsFromSection(sectionName);
+    };
+
     var processGtmDataFromSection = function (sectionName) {
         const eventData = getGtmDataFromSection(sectionName);
         if (true === isEmpty(eventData)) {
@@ -78,9 +113,17 @@ define([
         const metaData = Object.assign({}, eventData.meta);
         if (metaData && metaData.allowed_events) {
             for (const [allowedEventKey, allowedEvent] of Object.entries(metaData.allowed_events)) {
-                $(window).on(allowedEvent, function () {
+                // Guard against listener accumulation: every refresh of this section re-delivers
+                // the same allowed_events metadata, so only bind once per event key. The handler
+                // is also namespaced, so a later off() can never remove foreign listeners.
+                if (boundWindowEvents[allowedEventKey] === allowedEvent) {
+                    continue;
+                }
+
+                $(window).off(allowedEvent + '.yireoGtm2').on(allowedEvent + '.yireoGtm2', function () {
                     pusher(eventData, 'push (allowed event "' + allowedEventKey + '") [generic.js]');
                 });
+                boundWindowEvents[allowedEventKey] = allowedEvent;
             }
 
             return;
@@ -88,7 +131,9 @@ define([
 
         pusher(eventData, 'push (event from customerData "' + sectionName + '") [generic.js]');
 
-        // Make sure that a non-cacheable GTM event is not stored in customerData
+        // Make sure that a non-cacheable GTM event is not stored in customerData. Note: this
+        // mutation plus customerData.set() triggers our own subscription again, but the very
+        // same sectionData object is then skipped by processedSectionSnapshots (idempotency).
         if (!metaData || metaData.cacheable !== true) {
             delete sectionData['gtm_events'][eventId];
             logger('invalidating sections "' + sectionName + '"', sectionData)
@@ -109,8 +154,7 @@ define([
     var subscribeToSectionDataChanges = function (sectionName) {
         var sectionData = customerData.get(sectionName);
         sectionData.subscribe(function () {
-            processGtmDataFromSection(sectionName);
-            processGtmEventsFromSection(sectionName);
+            processSection(sectionName);
         });
     }
 
@@ -152,7 +196,7 @@ define([
             }
 
             sectionNames.forEach(function (sectionName) {
-                processGtmEventsFromSection(sectionName);
+                processSection(sectionName);
                 subscribeToSectionDataChanges(sectionName);
             });
         }
