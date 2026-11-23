@@ -50,13 +50,13 @@ class GetProductsFromCategoryBlockPlugin
         }
 
         if (!$collection->isLoaded()) {
-            // Do not fail silently: report that the data layer could not collect products from this block.
+            // Athlete2's toolbar can hand an unloaded collection to the grid. Load it here so the
+            // data layer and the grid share the same collection instead of emitting an empty list.
             $this->debugger->debug(
-                'GetProductsFromCategoryBlockPlugin: product collection is not loaded,'
-                . ' skipping data layer product collection',
+                'GetProductsFromCategoryBlockPlugin: product collection is not loaded, loading it now',
                 ['maximum_category_products' => $maximumCategoryProducts]
             );
-            return $collection;
+            $collection->load();
         }
 
         // GetCurrentCategoryProducts stores products keyed by their entity ID, so multiple list
