@@ -60,7 +60,9 @@ class TriggerAddShippingInfoDataLayerEvent
             $this->checkoutSession->setQuoteId((int)$quote->getId());
         }
 
-        $event = $this->addShippingInfo->get();
+        $event = $quote instanceof Quote
+            ? $this->addShippingInfo->getForQuote($quote)
+            : $this->addShippingInfo->get();
         if (array_key_exists('event', $event)) {
             $this->checkoutSessionDataProvider->add('add_shipping_info_event', $event);
         }

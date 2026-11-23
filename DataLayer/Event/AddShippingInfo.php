@@ -6,41 +6,34 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ShippingMethodManagementInterface;
 use Yireo\GoogleTagManager2\Api\Data\EventInterface;
-use Yireo\GoogleTagManager2\DataLayer\Tag\Cart\CartItems;
-use Yireo\GoogleTagManager2\DataLayer\Tag\Cart\CartValue;
+use Yireo\GoogleTagManager2\DataLayer\Mapper\CartItemDataMapper;
+use Yireo\GoogleTagManager2\Util\PriceFormatter;
 
 class AddShippingInfo implements EventInterface
 {
-    private CartItems $cartItems;
-    private CartValue $cartValue;
     private ShippingMethodManagementInterface $shippingMethodManagement;
     private CheckoutSession $checkoutSession;
+    private CartItemDataMapper $cartItemDataMapper;
+    private PriceFormatter $priceFormatter;
 
-    /**
-     * @param CartItems $cartItems
-     * @param CartValue $cartValue
-     * @param ShippingMethodManagementInterface $shippingMethodManagement
-     * @param CheckoutSession $checkoutSession
-     */
     public function __construct(
-        CartItems $cartItems,
-        CartValue $cartValue,
         ShippingMethodManagementInterface $shippingMethodManagement,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        CartItemDataMapper $cartItemDataMapper,
+        PriceFormatter $priceFormatter
     ) {
-        $this->cartItems = $cartItems;
-        $this->cartValue = $cartValue;
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->checkoutSession = $checkoutSession;
+        $this->cartItemDataMapper = $cartItemDataMapper;
+        $this->priceFormatter = $priceFormatter;
     }
 
     /**
-     * @return string[]
+     * @return array
      */
     public function get(): array
     {
@@ -54,18 +47,40 @@ class AddShippingInfo implements EventInterface
             return [];
         }
 
+        return $this->getForQuote($quote);
+    }
+
+    /**
+     * Build add_shipping_info directly from a resolved quote. The REST checkout used by Magento
+     * 2.4 does not populate Magento\Checkout\Model\Session with the guest quote, so the plugin
+     * resolves the quote from the cart ID and calls this method instead of get().
+     *
+     * @param Quote $quote
+     * @return array
+     */
+    public function getForQuote(Quote $quote): array
+    {
         $shippingMethod = $this->getShippingMethodFromQuote($quote);
         if (empty($shippingMethod)) {
             return [];
+        }
+
+        $items = [];
+        foreach ($quote->getAllVisibleItems() as $cartItem) {
+            try {
+                $items[] = $this->cartItemDataMapper->mapByCartItem($cartItem);
+            } catch (LocalizedException $e) {
+                // Keep the event usable even if one item cannot be mapped.
+            }
         }
 
         return [
             'event' => 'add_shipping_info',
             'ecommerce' => [
                 'currency' => $quote->getQuoteCurrencyCode(),
-                'value' => $this->cartValue->get(),
+                'value' => $this->priceFormatter->format((float)$quote->getSubtotalWithDiscount()),
                 'shipping_tier' => $shippingMethod,
-                'items' => $this->cartItems->get(),
+                'items' => $items,
             ],
         ];
     }
