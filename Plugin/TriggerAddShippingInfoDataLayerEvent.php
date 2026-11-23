@@ -40,14 +40,17 @@ class TriggerAddShippingInfoDataLayerEvent
      * (masked guest cart or numeric customer cart) and bind it to the checkout session so that
      * AddShippingInfo and its CartItems/CartValue tags can build the event.
      *
-     * @param ShippingInformationManagementInterface $subject
+     * $subject is intentionally untyped: the same plugin is registered for both
+     * ShippingInformationManagementInterface and GuestShippingInformationManagementInterface.
+     *
+     * @param object $subject
      * @param PaymentDetailsInterface $paymentDetails
      * @param mixed $cartId
      * @param ShippingInformationInterface $addressInformation
      * @return PaymentDetailsInterface
      */
     public function afterSaveAddressInformation(
-        ShippingInformationManagementInterface $subject,
+        $subject,
         PaymentDetailsInterface $paymentDetails,
         $cartId,
         ShippingInformationInterface $addressInformation
