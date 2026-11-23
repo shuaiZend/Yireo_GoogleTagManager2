@@ -11,6 +11,7 @@ use Yireo\GoogleTagManager2\DataLayer\Tag\Order\OrderItems;
 use Yireo\GoogleTagManager2\ServerSide\BrowserPurchaseSuppressor;
 use Yireo\GoogleTagManager2\Util\OrderTotals;
 use Yireo\GoogleTagManager2\Util\PriceFormatter;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 // See https://developers.google.com/analytics/devguides/collection/ga4/reference/events?client_type=gtm#purchase
 class Purchase implements EventInterface
@@ -23,6 +24,7 @@ class Purchase implements EventInterface
     private Session $checkoutSession;
     private OrderTotals $orderTotals;
     private ?BrowserPurchaseSuppressor $browserPurchaseSuppressor;
+    private UserIdentity $userIdentity;
 
     public function __construct(
         OrderItems $orderItems,
@@ -30,6 +32,7 @@ class Purchase implements EventInterface
         PriceFormatter $priceFormatter,
         Session $checkoutSession,
         OrderTotals $orderTotals,
+        UserIdentity $userIdentity,
         ?BrowserPurchaseSuppressor $browserPurchaseSuppressor = null
     ) {
         $this->orderItems = $orderItems;
@@ -37,6 +40,7 @@ class Purchase implements EventInterface
         $this->priceFormatter = $priceFormatter;
         $this->checkoutSession = $checkoutSession;
         $this->orderTotals = $orderTotals;
+        $this->userIdentity = $userIdentity;
         $this->browserPurchaseSuppressor = $browserPurchaseSuppressor;
     }
 
@@ -65,7 +69,7 @@ class Purchase implements EventInterface
         $orderValue = $this->orderTotals->getValueTotal($order);
         $valueAdjusted = $this->orderTotals->getValueTotalAjusted($order);
 
-        return [
+        $event = [
             'event' => 'purchase',
             'ecommerce' => [
                 'transaction_id' => $order->getIncrementId(),
@@ -82,6 +86,13 @@ class Purchase implements EventInterface
                 'items' => $this->orderItems->setOrder($order)->get(),
             ]
         ];
+
+        $userId = $this->userIdentity->getForOrder($order);
+        if ($userId !== null) {
+            $event['user_id'] = $userId;
+        }
+
+        return $event;
     }
 
     /**

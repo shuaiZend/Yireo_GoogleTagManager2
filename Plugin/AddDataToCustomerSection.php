@@ -18,6 +18,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Yireo\GoogleTagManager2\Api\CustomerSessionDataProviderInterface;
 use Yireo\GoogleTagManager2\DataLayer\Mapper\CustomerDataMapper;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 class AddDataToCustomerSection
 {
@@ -26,6 +27,7 @@ class AddDataToCustomerSection
     private CustomerSessionDataProviderInterface $customerSessionDataProvider;
     private CustomerDataMapper $customerDataMapper;
     private CustomerRepositoryInterface $customerRepository;
+    private UserIdentity $userIdentity;
 
     /**
      * Customer constructor.
@@ -40,13 +42,15 @@ class AddDataToCustomerSection
         GroupRepositoryInterface $groupRepository,
         CustomerSessionDataProviderInterface $customerSessionDataProvider,
         CustomerDataMapper $customerDataMapper,
-        CustomerRepositoryInterface $customerRepository
+        CustomerRepositoryInterface $customerRepository,
+        UserIdentity $userIdentity
     ) {
         $this->customerSession = $customerSession;
         $this->groupRepository = $groupRepository;
         $this->customerSessionDataProvider = $customerSessionDataProvider;
         $this->customerDataMapper = $customerDataMapper;
         $this->customerRepository = $customerRepository;
+        $this->userIdentity = $userIdentity;
     }
 
     /**
@@ -99,11 +103,18 @@ class AddDataToCustomerSection
         } catch (NoSuchEntityException $e) {
         }
 
-        return array_merge([
+        $gtmData = array_merge([
             'customerLoggedIn' => 1,
             'customerId' => $customerId,
             'customerGroupId' => $customerGroupId,
             'customerGroupCode' => $customerGroupCode
         ], $customerGtmData);
+
+        $userId = $this->userIdentity->getForCustomer($customer);
+        if ($userId !== null) {
+            $gtmData['user_id'] = $userId;
+        }
+
+        return $gtmData;
     }
 }

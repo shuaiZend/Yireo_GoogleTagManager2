@@ -14,6 +14,7 @@
                 <product_eav_attributes>material</product_eav_attributes>
                 <category_eav_attributes>id,name</category_eav_attributes>
                 <customer_eav_attributes>id</customer_eav_attributes>
+                <user_id_mode>none</user_id_mode>
                 <view_cart_occurances>everywhere</view_cart_occurances>
                 <view_cart_on_mini_cart_expand_only>1</view_cart_on_mini_cart_expand_only>
                 <product_list_value_on_category>product_first_category</product_list_value_on_category>

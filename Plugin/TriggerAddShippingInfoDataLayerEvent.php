@@ -60,8 +60,16 @@ class TriggerAddShippingInfoDataLayerEvent
             $this->checkoutSession->setQuoteId((int)$quote->getId());
         }
 
+        $email = null;
+        if ($addressInformation->getShippingAddress()) {
+            $email = $addressInformation->getShippingAddress()->getEmail() ?: null;
+        }
+        if (!$email && $addressInformation->getBillingAddress()) {
+            $email = $addressInformation->getBillingAddress()->getEmail() ?: null;
+        }
+
         $event = $quote instanceof Quote
-            ? $this->addShippingInfo->getForQuote($quote)
+            ? $this->addShippingInfo->getForQuote($quote, $email)
             : $this->addShippingInfo->get();
         if (array_key_exists('event', $event)) {
             $this->checkoutSessionDataProvider->add('add_shipping_info_event', $event);

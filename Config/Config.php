@@ -16,6 +16,10 @@ class Config implements ArgumentInterface
     public const ENVIRONMENT_AUTH_PATTERN = '/^[A-Za-z0-9_-]+$/D';
     public const ENVIRONMENT_PREVIEW_PATTERN = '/^env-[0-9]+$/D';
 
+    public const USER_ID_MODE_NONE = 'none';
+    public const USER_ID_MODE_CUSTOMER_ID = 'customer_id';
+    public const USER_ID_MODE_EMAIL_HASH = 'email_hash';
+
     private ScopeConfigInterface $scopeConfig;
     private CookieHelper $cookieHelper;
     private StoreManagerInterface $storeManager;
@@ -300,6 +304,24 @@ class Config implements ArgumentInterface
     public function includeShippingInAdjustedValue(): bool
     {
         return (bool)$this->getModuleConfigValue('include_shipping_in_adjusted_value', false);
+    }
+
+    /**
+     * How the GA4 user_id should be derived. The default is none: no identity is emitted unless
+     * the merchant explicitly opts in to customer_id or email_hash.
+     *
+     * @return string
+     */
+    public function getUserIdMode(): string
+    {
+        $mode = (string)$this->getModuleConfigValue('user_id_mode', self::USER_ID_MODE_NONE);
+        $allowed = [
+            self::USER_ID_MODE_NONE,
+            self::USER_ID_MODE_CUSTOMER_ID,
+            self::USER_ID_MODE_EMAIL_HASH,
+        ];
+
+        return in_array($mode, $allowed, true) ? $mode : self::USER_ID_MODE_NONE;
     }
 
     /**

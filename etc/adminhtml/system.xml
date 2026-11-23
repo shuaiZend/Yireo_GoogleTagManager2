@@ -120,6 +120,14 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
+                <field id="user_id_mode" type="select" translate="label comment" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>GA4 user_id mode</label>
+                    <source_model>Yireo\GoogleTagManager2\Config\Source\UserIdMode</source_model>
+                    <comment><![CDATA[None by default. <b>Email hash</b> emits HMAC-SHA256(normalized email) for logged-in customers, guest quotes and orders, so a guest order and a later account with the same email share the same GA4 user_id. <b>Customer ID</b> emits the Magento customer ID for logged-in customers only; guest orders remain anonymous. Email addresses are never emitted. Enabling this requires a privacy-policy and consent review; rotating the Magento crypt key changes all hashes.]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
                 <field id="view_cart_occurances" type="select" translate="label" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>view_cart occurances</label>
                     <source_model>Yireo\GoogleTagManager2\Config\Source\ViewCartOccurancesOptions</source_model>

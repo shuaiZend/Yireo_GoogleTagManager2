@@ -124,8 +124,23 @@ class Config
             && $this->consentResolver->isActive($storeId);
     }
 
+    public function getUserIdMode(?int $storeId = null): string
+    {
+        $mode = (string)$this->scopeConfig->getValue(
+            'googletagmanager2/settings/user_id_mode',
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+
+        return in_array($mode, ['none', 'customer_id', 'email_hash'], true) ? $mode : 'none';
+    }
+
     public function sendUserId(?int $storeId = null): bool
     {
+        if ($this->getUserIdMode($storeId) !== 'none') {
+            return true;
+        }
+
         return $this->isFlag(self::PREFIX . 'send_user_id', $storeId);
     }
 

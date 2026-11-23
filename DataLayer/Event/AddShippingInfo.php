@@ -12,6 +12,7 @@ use Magento\Quote\Model\ShippingMethodManagementInterface;
 use Yireo\GoogleTagManager2\Api\Data\EventInterface;
 use Yireo\GoogleTagManager2\DataLayer\Mapper\CartItemDataMapper;
 use Yireo\GoogleTagManager2\Util\PriceFormatter;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 class AddShippingInfo implements EventInterface
 {
@@ -19,17 +20,20 @@ class AddShippingInfo implements EventInterface
     private CheckoutSession $checkoutSession;
     private CartItemDataMapper $cartItemDataMapper;
     private PriceFormatter $priceFormatter;
+    private UserIdentity $userIdentity;
 
     public function __construct(
         ShippingMethodManagementInterface $shippingMethodManagement,
         CheckoutSession $checkoutSession,
         CartItemDataMapper $cartItemDataMapper,
-        PriceFormatter $priceFormatter
+        PriceFormatter $priceFormatter,
+        UserIdentity $userIdentity
     ) {
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->checkoutSession = $checkoutSession;
         $this->cartItemDataMapper = $cartItemDataMapper;
         $this->priceFormatter = $priceFormatter;
+        $this->userIdentity = $userIdentity;
     }
 
     /**
@@ -58,7 +62,7 @@ class AddShippingInfo implements EventInterface
      * @param Quote $quote
      * @return array
      */
-    public function getForQuote(Quote $quote): array
+    public function getForQuote(Quote $quote, ?string $email = null): array
     {
         $shippingMethod = $this->getShippingMethodFromQuote($quote);
         if (empty($shippingMethod)) {
@@ -74,7 +78,7 @@ class AddShippingInfo implements EventInterface
             }
         }
 
-        return [
+        $event = [
             'event' => 'add_shipping_info',
             'ecommerce' => [
                 'currency' => $quote->getQuoteCurrencyCode(),
@@ -83,6 +87,15 @@ class AddShippingInfo implements EventInterface
                 'items' => $items,
             ],
         ];
+
+        $userId = ($email !== null && $email !== '')
+            ? $this->userIdentity->getForCustomerId((int)$quote->getCustomerId(), $email)
+            : $this->userIdentity->getForQuote($quote);
+        if ($userId !== null) {
+            $event['user_id'] = $userId;
+        }
+
+        return $event;
     }
 
     /**

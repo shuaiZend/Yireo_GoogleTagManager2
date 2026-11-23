@@ -6,16 +6,20 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Yireo\GoogleTagManager2\Api\Data\EventInterface;
 use Yireo\GoogleTagManager2\DataLayer\Mapper\CustomerDataMapper;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 class Login implements EventInterface
 {
     private CustomerInterface $customer;
     private CustomerDataMapper $customerDataMapper;
+    private UserIdentity $userIdentity;
 
     public function __construct(
-        CustomerDataMapper $customerDataMapper
+        CustomerDataMapper $customerDataMapper,
+        UserIdentity $userIdentity
     ) {
         $this->customerDataMapper = $customerDataMapper;
+        $this->userIdentity = $userIdentity;
     }
 
     public function setCustomer(CustomerInterface $customer): Login
@@ -26,9 +30,16 @@ class Login implements EventInterface
 
     public function get(): array
     {
-        return [
+        $event = [
             'event' => 'login',
             'customer' => $this->customerDataMapper->mapByCustomer($this->customer)
         ];
+
+        $userId = $this->userIdentity->getForCustomer($this->customer);
+        if ($userId !== null) {
+            $event['user_id'] = $userId;
+        }
+
+        return $event;
     }
 }

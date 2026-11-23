@@ -14,6 +14,7 @@ use Yireo\GoogleTagManager2\ServerSide\Context\ContextCollector;
 use Yireo\GoogleTagManager2\ServerSide\Context\ContextRepository;
 use Yireo\GoogleTagManager2\ServerSide\Outbox\OutboxRepository;
 use Yireo\GoogleTagManager2\ServerSide\Payload\OrderEventBuilder;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 class OrderEventPublisher
 {
@@ -32,6 +33,7 @@ class OrderEventPublisher
     private OutboxRepository $outboxRepository;
     private AppState $appState;
     private Debugger $debugger;
+    private UserIdentity $userIdentity;
 
     public function __construct(
         Config $config,
@@ -41,7 +43,8 @@ class OrderEventPublisher
         ContextCollector $contextCollector,
         OutboxRepository $outboxRepository,
         AppState $appState,
-        Debugger $debugger
+        Debugger $debugger,
+        UserIdentity $userIdentity
     ) {
         $this->config = $config;
         $this->eventPublisher = $eventPublisher;
@@ -51,6 +54,7 @@ class OrderEventPublisher
         $this->outboxRepository = $outboxRepository;
         $this->appState = $appState;
         $this->debugger = $debugger;
+        $this->userIdentity = $userIdentity;
     }
 
     public function publishPurchase(OrderInterface $order): ?int
@@ -110,18 +114,21 @@ class OrderEventPublisher
 
     private function resolveContext(OrderInterface $order): Context
     {
+        $userId = $this->userIdentity->getForOrder($order);
         $context = $this->contextRepository->getByOrderId((int)$order->getEntityId())
             ?? $this->contextRepository->getByQuoteId((int)$order->getQuoteId());
-        if ($context instanceof Context) {
-            return $context;
+
+        if (!$context instanceof Context) {
+            $context = $this->isStorefront()
+                ? $this->contextCollector->collect((int)$order->getStoreId())
+                : $this->contextCollector->createFallback($userId);
         }
 
-        if ($this->isStorefront()) {
-            return $this->contextCollector->collect((int)$order->getStoreId());
+        if ($context->getUserId() === null && $userId !== null) {
+            return $context->withUserId($userId);
         }
 
-        $customerId = (int)$order->getCustomerId();
-        return $this->contextCollector->createFallback($customerId > 0 ? (string)$customerId : null);
+        return $context;
     }
 
     private function isStorefront(): bool

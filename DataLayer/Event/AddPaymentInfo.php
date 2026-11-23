@@ -7,12 +7,14 @@ use Magento\Quote\Model\Quote as Cart;
 use Yireo\GoogleTagManager2\Api\Data\EventInterface;
 use Yireo\GoogleTagManager2\DataLayer\Tag\Cart\CartItems;
 use Yireo\GoogleTagManager2\Util\PriceFormatter;
+use Yireo\GoogleTagManager2\Util\UserIdentity;
 
 class AddPaymentInfo implements EventInterface
 {
     private CartItems $cartItems;
     private CartRepositoryInterface $cartRepository;
     private PriceFormatter $priceFormatter;
+    private UserIdentity $userIdentity;
     private int $cartId;
     private string $paymentMethod;
 
@@ -23,11 +25,13 @@ class AddPaymentInfo implements EventInterface
     public function __construct(
         CartRepositoryInterface  $cartRepository,
         CartItems $cartItems,
-        PriceFormatter $priceFormatter
+        PriceFormatter $priceFormatter,
+        UserIdentity $userIdentity
     ) {
         $this->cartItems = $cartItems;
         $this->cartRepository = $cartRepository;
         $this->priceFormatter = $priceFormatter;
+        $this->userIdentity = $userIdentity;
     }
 
     /**
@@ -38,7 +42,7 @@ class AddPaymentInfo implements EventInterface
         /** @var Cart $cart */
         $cart = $this->cartRepository->get($this->cartId);
 
-        return [
+        $event = [
             'event' => 'add_payment_info',
             'ecommerce' => [
                 'currency' => $cart->getQuoteCurrencyCode(),
@@ -49,6 +53,13 @@ class AddPaymentInfo implements EventInterface
                 'items' => $this->cartItems->get()
             ]
         ];
+
+        $userId = $this->userIdentity->getForQuote($cart);
+        if ($userId !== null) {
+            $event['user_id'] = $userId;
+        }
+
+        return $event;
     }
 
     /**
