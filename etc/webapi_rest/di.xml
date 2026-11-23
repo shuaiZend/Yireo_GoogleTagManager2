@@ -4,6 +4,15 @@
         <plugin name="Yireo_GoogleTagManager2::triggerAddShippingInfoDataLayerEvent" type="Yireo\GoogleTagManager2\Plugin\TriggerAddShippingInfoDataLayerEvent"/>
     </type>
 
+    <!--
+        Guest checkout posts to /V1/guest-carts/:cartId/shipping-information, which is served by
+        GuestShippingInformationManagementInterface. Without this entry add_shipping_info is never
+        emitted for guest orders.
+    -->
+    <type name="Magento\Checkout\Api\GuestShippingInformationManagementInterface">
+        <plugin name="Yireo_GoogleTagManager2::triggerAddGuestShippingInfoDataLayerEvent" type="Yireo\GoogleTagManager2\Plugin\TriggerAddShippingInfoDataLayerEvent"/>
+    </type>
+
     <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
         <plugin name="Yireo_GoogleTagManager2::triggerAddPaymentInfoDataLayerEvent" type="Yireo\GoogleTagManager2\Plugin\TriggerAddPaymentInfoDataLayerEvent"/>
     </type>
